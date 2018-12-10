@@ -44,19 +44,10 @@ def genPrefLists(sim):
 			size = agent.requests[-1].size
 			min_seat = agent.requests[-1].min_seat
 		for other in sim.agents:
-			#if agent.id == other.id:
-			#	continue
 			if openSeats[other.id] >= size and other.seats[-1].id < min_seat:
 				prefs[agent].append(other)
 		prefs[agent].sort(key= lambda p: p.seats[-1].id)
 
-	#for agent in prefs:
-	#	pref = prefs[agent]
-	#	print("")
-	#	print(agent)
-	#	for other in pref:
-	#		print(other) 
-	#print(prefs)
 	return prefs
 
 def filterAgents(sim, satisfied):
@@ -82,14 +73,15 @@ def filterAgents(sim, satisfied):
 			del curList[agent]
 			changed = True
 		toDelete.clear()
-		print("cleared")
 
 	for agent in curList:
 		pref = curList[agent]
-		print("filtered")
+		print("")
+		print("Preferences of")
 		print(agent)
+		print("are")
 		for other in pref:
-			print(other) 
+			print(other)
 	return curList
 
 def doDFS(prefs, cur):
@@ -133,23 +125,18 @@ def doTrade(sim, tradeList):
 			prev_cursor.set_id(prev_cursor.id + 1)
 		cur.size = numSeats
 
-	# for agent in oldSeats:
-	# 	for oldSeat in oldSeats[agent]:
-	# 		if sim.venue[oldSeat.section][oldSeat.row][oldSeat.seat].occupied == agent.id:
-	# 			sim.venue[oldSeat.section][oldSeat.row][oldSeat.seat].occupied = 0
-
-
-# first step is to iteratively remove all agents with empty pref lists from the pool
-# once all of those agents are removed, run TTC
 def doTTC(sim):
 	satisfied = []
+	tradesExecuted = 0
 	fPrefs = filterAgents(sim, satisfied)
 	while len(fPrefs) > 0:
 		tradeList = []
 		for curAgent in fPrefs:
 			tradeList = doDFS(fPrefs, curAgent)
 			break
-		print("trade list is")
+		print("")
+		print("Executing trade")
+		tradesExecuted += 1
 		for agent in tradeList:
 			print(agent)
 
@@ -158,7 +145,5 @@ def doTTC(sim):
 		for agent in tradeList:
 			satisfied.append(agent)
 		fPrefs = filterAgents(sim, satisfied)
-
-
-
-
+	print(str(tradesExecuted) + " trade(s) executed this time period")
+	return tradesExecuted

@@ -1,8 +1,8 @@
 import random
 import copy
 
-MAX_SIZE = 10
-MAX_TIME = 3
+MAX_SIZE = 15
+MAX_TIME = 20
 MAX_CHANGES = 5
 
 class Agent():
@@ -189,7 +189,7 @@ class Simulator():
             except:
                 print("Not currently allocated")
                 continue
-            change = random.randint(1, 2)
+            change = random.randint(1, 4)
             negative = random.randint(0, 1)
             min_seat = self.venue_size["sections"] * self.venue_size["rows"] * self.venue_size["seats"]
             if negative == 0:
@@ -217,6 +217,7 @@ class Simulator():
                     print("Request successfully granted for agent {}, new seats {} to {}".format(request.agent_id, self.agents[request.agent_id - 1].seats[0].id, self.agents[request.agent_id - 1].seats[-1].id))
                     self.requests_satisfied.append(request)
                     satisfied.append(index)
+                    self.agents[request.agent_id - 1].requests.clear()
             else:
                 print("Request still pending for agent {} with current size {} and seat {}, new size {}".format(self.agents[request.agent_id - 1].id, len(self.agents[request.agent_id - 1].seats), self.agents[request.agent_id - 1].seats[0].id, request.size))
 
@@ -224,6 +225,21 @@ class Simulator():
             self.requests.pop(index)
 
         self.history.append(History(self.venue, self.agents, self.sizes, self.requests, self.cursors))
+
+    def final_calcs(self):
+        num_alloc = 0
+        for agent in self.agents:
+            print(str(agent))
+            if len(agent.seats) > 0:
+                num_alloc += 1
+
+        for section in self.venue:
+            for row in section:
+                for seat in row:
+                    print(str(seat))
+
+        print("In total, {} agents allocated, {} agents unallocated, {} requests satisfied".format(num_alloc, len(self.agents) - num_alloc, len(self.requests_satisfied)))
+
 
     def calc_max_gap(self, cursor, size):
         """Method that calculates the maximum gap the current sized party could leave in its optimal row between itself
