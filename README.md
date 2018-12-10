@@ -9,6 +9,7 @@ The project is organized into the following:
 
 * main.py
 * simulator.py
+* TTC.py
 
 See below for details on each file
 
@@ -49,3 +50,7 @@ in front of it within the venue. For now, we assume no monetary alternatives are
 * The simulator will keep track of which requests are satisfied and which are not after each moment in time. A satisfied
 request is one where the number of seats given is equal to the party size, and the seats are all better than the minimum 
 seat. Finally, the seats must all still be adjacent (consecutive in the same row).
+
+### TTC
+
+This file determines which preferences between agents are valid, generates preferences for each agent, runs the TTC algorithm to discover trades that can be executed, and then executes those trades. calcOpenSeats() calculates the open seat values (described in paper) for each of the agents, genPrefLists() generates the preference lists for each agent, filterAgents() removes all agents without valid preferences from the pool, doDFS() runs depth-first-search on the top preferences to find a trading cycle, doTrade() executes the trades in a cycle, and doTTC() is a wrapper function that runs the TTC algorithm. 
