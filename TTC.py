@@ -35,7 +35,7 @@ def genPrefLists(sim):
 	openSeats = calcOpenSeats(sim)
 	prefs = {}
 	for agent in sim.agents:
-		prefs[agent.id] = []
+		prefs[agent] = []
 		if len(agent.seats) == 0:
 			continue
 		size = agent.size
@@ -47,11 +47,57 @@ def genPrefLists(sim):
 			#if agent.id == other.id:
 			#	continue
 			if openSeats[other.id] >= size and other.seats[-1].id < min_seat:
-				prefs[agent.id].append(other)
-		prefs[agent.id].sort(key= lambda p: p.seats[-1].id)
+				prefs[agent].append(other)
+		prefs[agent].sort(key= lambda p: p.seats[-1].id)
+
+	for agent in prefs:
+		pref = prefs[agent]
+		print("")
+		print(agent)
+		for other in pref:
+			print(other) 
 	#print(prefs)
 	return prefs
 
+def filterAgents(sim):
+	curList = genPrefLists(sim)
+	changed = True
+	toDelete = []
+	while changed:
+		changed = False
+		for agent in curList:
+			prefs = curList[agent]
+			found = False
+			for other in prefs:
+				if other in curList:
+					found = True
+				else:
+					curList[agent].remove(other)
+					changed = True
+			if not found:
+				toDelete.append(agent)
+		for agent in toDelete:
+			del curList[agent]
+			changed = True
+		toDelete.clear()
+		print("cleared")
+
+	for agent in curList:
+		pref = curList[agent]
+		print("filtered")
+		print(agent)
+		for other in pref:
+			print(other) 
+	return curList
+
+
 # first step is to iteratively remove all agents with empty pref lists from the pool
 # once all of those agents are removed, run TTC
-#def doTTC(sim):
+def doTTC(sim):
+	fPrefs = filterAgents(sim)
+	
+
+
+
+
+

@@ -33,7 +33,8 @@ if __name__ == '__main__':
 
         # Insert mechanism code here
         #calcOpenSeats(sim)
-        genPrefLists(sim)
+        #genPrefLists(sim)
+        doTTC(sim)
 
         # Check which requests have been satisfied and delete them from the list
         print("----CHECKING REQUESTS----")
