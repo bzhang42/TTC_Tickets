@@ -32,7 +32,8 @@ if __name__ == '__main__':
         sim.secondary_market(time)
 
         # Insert mechanism code here
-        calcOpenSeats(sim)
+        #calcOpenSeats(sim)
+        genPrefLists(sim)
 
         # Check which requests have been satisfied and delete them from the list
         print("----CHECKING REQUESTS----")
