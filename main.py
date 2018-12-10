@@ -1,4 +1,5 @@
 from simulator import *
+from TTC import *
 
 if __name__ == '__main__':
     agents = []
@@ -8,6 +9,7 @@ if __name__ == '__main__':
 
     # Create agents 1-40 with max party size and utility from 0 to 100
     for i in range(1, 41):
+    #for i in range(1, 11):
         agents.append(Agent(i, random.randint(1, MAX_SIZE), random.randint(0, 100)))
 
     print("----ALL AGENTS----")
@@ -17,6 +19,7 @@ if __name__ == '__main__':
     # Run the simulation for primary market
     print("----RUNNING SIMULATION----")
     sim = Simulator(agents, {"seats": 20, "rows": 5, "sections": 3})
+    #sim = Simulator(agents, {"seats": 15, "rows": 3, "sections": 2})
 
     print("----PRIMARY MARKET ALLOCATION----")
     sim.primary_market()
@@ -29,6 +32,7 @@ if __name__ == '__main__':
         sim.secondary_market(time)
 
         # Insert mechanism code here
+        calcOpenSeats(sim)
 
         # Check which requests have been satisfied and delete them from the list
         print("----CHECKING REQUESTS----")
