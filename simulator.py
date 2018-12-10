@@ -184,15 +184,17 @@ class Simulator():
 
         # Selects some random agents to have changes in party size
         for agent in changed_agents:
+            try:
+                test = agent.seats[0]
+            except:
+                print("Not currently allocated")
+                continue
             change = random.randint(1, 2)
             negative = random.randint(0, 1)
             min_seat = self.venue_size["sections"] * self.venue_size["rows"] * self.venue_size["seats"]
             if negative == 0:
                 change = -change
-                try:
-                    min_seat = agent.seats[0].id
-                except:
-                    print("Not currently allocated")
+                min_seat = agent.seats[-1].id
 
             # Represents these changes as requests under the agents they belong to
             request = Request(agent.id, time, max(1, agent.size + change), min_seat)
