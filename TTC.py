@@ -1,5 +1,5 @@
 from simulator import *
-
+import copy
 
 def calcOpenSeats(sim):
 	openSeats = {}
@@ -50,17 +50,19 @@ def genPrefLists(sim):
 				prefs[agent].append(other)
 		prefs[agent].sort(key= lambda p: p.seats[-1].id)
 
-	for agent in prefs:
-		pref = prefs[agent]
-		print("")
-		print(agent)
-		for other in pref:
-			print(other) 
+	#for agent in prefs:
+	#	pref = prefs[agent]
+	#	print("")
+	#	print(agent)
+	#	for other in pref:
+	#		print(other) 
 	#print(prefs)
 	return prefs
 
-def filterAgents(sim):
+def filterAgents(sim, satisfied):
 	curList = genPrefLists(sim)
+	for agent in satisfied:
+		del curList[agent]
 	changed = True
 	toDelete = []
 	while changed:
@@ -99,10 +101,49 @@ def doDFS(prefs, cur):
 		tradeList.pop(0)
 	return tradeList
 
+def doTrade(sim, tradeList):
+	oldSeats = {}
+	for agent in tradeList:
+		oldSeats[agent] = copy.deepcopy(agent.seats)
+	for i in range(len(tradeList)):
+		cur = tradeList[i]
+		if i == len(tradeList) - 1:
+			want = tradeList[0]
+		else:
+			want = tradeList[i+1]
+
+		cur.seats.clear()
+		prev_cursor = Cursor(sim.venue_size, oldSeats[want][0].id - 1)
+		while sim.venue[prev_cursor.section][prev_cursor.row][prev_cursor.seat].occupied == 0 and oldSeats[want][0].row == prev_cursor.row:
+			prev_cursor.set_id(prev_cursor.id - 1)
+		prev_cursor.set_id(prev_cursor.id + 1)
+
+		for oldSeat in oldSeats[want]:
+			if sim.venue[oldSeat.section][oldSeat.row][oldSeat.seat].occupied == want.id:
+				sim.venue[oldSeat.section][oldSeat.row][oldSeat.seat].occupied = 0
+
+		if len(cur.requests) > 0:
+			numSeats = cur.requests[-1].size
+		else:
+			numSeats = len(oldSeats[cur])
+		for j in range(numSeats):
+			cur_seat = sim.venue[prev_cursor.section][prev_cursor.row][prev_cursor.seat]
+			cur_seat.occupied = cur.id
+			cur.seats.append(cur_seat)
+			prev_cursor.set_id(prev_cursor.id + 1)
+		cur.size = numSeats
+
+	# for agent in oldSeats:
+	# 	for oldSeat in oldSeats[agent]:
+	# 		if sim.venue[oldSeat.section][oldSeat.row][oldSeat.seat].occupied == agent.id:
+	# 			sim.venue[oldSeat.section][oldSeat.row][oldSeat.seat].occupied = 0
+
+
 # first step is to iteratively remove all agents with empty pref lists from the pool
 # once all of those agents are removed, run TTC
 def doTTC(sim):
-	fPrefs = filterAgents(sim)
+	satisfied = []
+	fPrefs = filterAgents(sim, satisfied)
 	while len(fPrefs) > 0:
 		tradeList = []
 		for curAgent in fPrefs:
@@ -111,7 +152,12 @@ def doTTC(sim):
 		print("trade list is")
 		for agent in tradeList:
 			print(agent)
-		break
+
+		doTrade(sim, tradeList)
+
+		for agent in tradeList:
+			satisfied.append(agent)
+		fPrefs = filterAgents(sim, satisfied)
 
 
 

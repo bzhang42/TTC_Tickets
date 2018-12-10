@@ -206,6 +206,7 @@ class Simulator():
         """Method that determines which requests have been successfully granted, thus deleting those from the central
         list of requests and appending to the central list of satisfied requests. Also signifies the end of the moment
         in time, so a new entry is recorded in the simulator history."""
+        satisfied = []
         for index, request in enumerate(self.requests):
             # Note that we must offset by 1 because agent id's start at 1 and not 0
             if len(self.agents[request.agent_id - 1].seats) == request.size:
@@ -215,9 +216,12 @@ class Simulator():
                 else:
                     print("Request successfully granted for agent {}, new seats {} to {}".format(request.agent_id, self.agents[request.agent_id - 1].seats[0].id, self.agents[request.agent_id - 1].seats[-1].id))
                     self.requests_satisfied.append(request)
-                    self.requests.pop(index)
+                    satisfied.append(index)
             else:
                 print("Request still pending for agent {} with current size {} and seat {}, new size {}".format(self.agents[request.agent_id - 1].id, len(self.agents[request.agent_id - 1].seats), self.agents[request.agent_id - 1].seats[0].id, request.size))
+
+        for index in list(reversed(satisfied)):
+            self.requests.pop(index)
 
         self.history.append(History(self.venue, self.agents, self.sizes, self.requests, self.cursors))
 
