@@ -1,7 +1,9 @@
 import random
+import copy
 
 MAX_SIZE = 10
-MAX_TIME = 2
+MAX_TIME = 3
+MAX_CHANGES = 5
 
 class Agent():
     """Class that represents an agent/party of certain size, certain utility for attending the event, and certain
@@ -46,6 +48,17 @@ class Seat():
 
     def __str__(self):
         return "Seat ({}, {}, {}), occupied by {}".format(self.section, self.row, self.seat, self.occupied)
+
+
+class History():
+    """Class that makes a copy of the current state of the simulator, including all important variables, as a central
+    record to be referenced to in the future."""
+    def __init__(self, venue, agents, sizes, requests, cursors):
+        self.venue = copy.deepcopy(venue)
+        self.agents = copy.deepcopy(agents)
+        self.sizes = copy.deepcopy(sizes)
+        self.requests = copy.deepcopy(requests)
+        self.cursors = copy.deepcopy(cursors)
 
 
 class Cursor():
@@ -102,12 +115,15 @@ class Simulator():
         self.venue_size = venue_size
         self.agents = agents
         self.sizes = {agent.size for agent in agents}
-        self.primary_market(agents)
+        self.requests = []
+        self.requests_satisfied = []
+        self.history = []
 
-    def primary_market(self, agents):
+    def primary_market(self):
         """Method that allocates initial seating to all agents based on their relative utilities, sorting them into a
-        queue and then ticketing them until the venue is full."""
-        queue = sorted(agents, key=lambda p: -p.value)
+        queue and then ticketing them until the venue is full. At the end, records the first entry in the central
+        history (index 0) to represent the initial allocation of seats."""
+        queue = sorted(self.agents, key=lambda p: -p.value)
 
         # Create a cursor for each existing party size to keep track of the next open set of seats for that sized party
         cursors = {size: Cursor(self.venue_size, 0) for size in self.sizes}
@@ -155,6 +171,53 @@ class Simulator():
             print("Size {} cursor at {}".format(key, cursor))
 
         self.cursors = cursors
+
+        self.history.append(History(self.venue, self.agents, self.sizes, self.requests, self.cursors))
+
+    def secondary_market(self, time):
+        """Method which randomly introduces changes in agent party sizes as requests that the mechanisms should
+        attempt to successfully satisfy. Also signals the beginning of a moment in time, so the time is recorded in the
+        central simulator."""
+        self.time = time
+        num_changes = random.randint(1, MAX_CHANGES)
+        changed_agents = random.sample(self.agents, num_changes)
+
+        # Selects some random agents to have changes in party size
+        for agent in changed_agents:
+            change = random.randint(1, 2)
+            negative = random.randint(0, 1)
+            min_seat = self.venue_size["sections"] * self.venue_size["rows"] * self.venue_size["seats"]
+            if negative == 0:
+                change = -change
+                try:
+                    min_seat = agent.seats[0].id
+                except:
+                    print("Not currently allocated")
+
+            # Represents these changes as requests under the agents they belong to
+            request = Request(agent.id, time, max(1, agent.size + change), min_seat)
+            agent.requests.append(request)
+            self.requests.append(request)
+            print("Requesting change of {} for agent {} currently in seats {} to {}, {} total to {} new, and min seat {}, at time {}".format(change, agent.id, agent.seats[0].id, agent.seats[-1].id, len(agent.seats), max(1, agent.size + change), min_seat, time))
+
+    def check_requests(self):
+        """Method that determines which requests have been successfully granted, thus deleting those from the central
+        list of requests and appending to the central list of satisfied requests. Also signifies the end of the moment
+        in time, so a new entry is recorded in the simulator history."""
+        for index, request in enumerate(self.requests):
+            # Note that we must offset by 1 because agent id's start at 1 and not 0
+            if len(self.agents[request.agent_id - 1].seats) == request.size:
+                print("Agent {} has size {} that matches request size {}".format(self.agents[request.agent_id - 1].id, len(self.agents[request.agent_id - 1].seats), request.size))
+                if self.agents[request.agent_id - 1].seats[-1].id > request.min_seat:
+                    raise Exception("Minimum seat was {}, but allocated seat {} instead.".format(request.min_seat, self.agents[request.agent_id - 1].seats[-1].id))
+                else:
+                    print("Request successfully granted for agent {}, new seats {} to {}".format(request.agent_id, self.agents[request.agent_id - 1].seats[0].id, self.agents[request.agent_id - 1].seats[-1].id))
+                    self.requests_satisfied.append(request)
+                    self.requests.pop(index)
+            else:
+                print("Request still pending for agent {} with current size {} and seat {}, new size {}".format(self.agents[request.agent_id - 1].id, len(self.agents[request.agent_id - 1].seats), self.agents[request.agent_id - 1].seats[0].id, request.size))
+
+        self.history.append(History(self.venue, self.agents, self.sizes, self.requests, self.cursors))
 
     def calc_max_gap(self, cursor, size):
         """Method that calculates the maximum gap the current sized party could leave in its optimal row between itself
