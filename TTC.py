@@ -90,13 +90,28 @@ def filterAgents(sim):
 			print(other) 
 	return curList
 
+def doDFS(prefs, cur):
+	tradeList = []
+	while cur not in tradeList:
+		tradeList.append(cur)
+		cur = prefs[cur][0]
+	while tradeList[0] != cur:
+		tradeList.pop(0)
+	return tradeList
 
 # first step is to iteratively remove all agents with empty pref lists from the pool
 # once all of those agents are removed, run TTC
 def doTTC(sim):
 	fPrefs = filterAgents(sim)
-	
-
+	while len(fPrefs) > 0:
+		tradeList = []
+		for curAgent in fPrefs:
+			tradeList = doDFS(fPrefs, curAgent)
+			break
+		print("trade list is")
+		for agent in tradeList:
+			print(agent)
+		break
 
 
 
