@@ -46,3 +46,6 @@ consumer tendencies.
 * The simulator will assume that if a party adds people, it is now fine with any set of seats in the venue (minimum 
 seat is thus the seat at the last index). If a party drops people, it is now fine only with sets of seats indexed 
 in front of it within the venue. For now, we assume no monetary alternatives are in play.
+* The simulator will keep track of which requests are satisfied and which are not after each moment in time. A satisfied
+request is one where the number of seats given is equal to the party size, and the seats are all better than the minimum 
+seat. Finally, the seats must all still be adjacent (consecutive in the same row).
