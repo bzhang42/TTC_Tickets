@@ -4,6 +4,8 @@ CS 136 Final Project by Aditya Dhar, Bill Zhang, David Zhu
 Mechanism and simulator for trading sets of event tickets between parties to make the secondary market for event 
 ticketing more efficient. Utilizes Top-Trading-Cycles (TTC) mechanism to detect and execute trades in real time.
 
+To run the simulation, adjust the parameters as desired in main.py and simulator.py, and then run main.py using Python3. 
+
 ## Organization
 The project is organized into the following:
 
